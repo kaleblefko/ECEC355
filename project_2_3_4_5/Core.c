@@ -12,18 +12,23 @@ Core *initCore(Instruction_Memory *i_mem)
 
     // FIXME, initialize register file here.
     // core->reg_file[0] = ...
+    for(int x = 0; x < 32; x++){
+        core->reg_file[x] = 0;
+    }
 
     // FIXME, initialize data memory here.
     // core->data_mem[0] = ...
+    for(int d = 0; d < 1024; d++){
+        core->data_mem[d] = 0;
+    }
     
-
     return core;
 }
 
 void printInstructionBinary(unsigned instruction){
     
     for (int i = 0; i < 32; ++i) {
-        if (instruction >> 31-i & 0x1) putchar('1');
+        if (instruction >> (31-i) & 0x1) putchar('1');
         else putchar('0');
     }
 
