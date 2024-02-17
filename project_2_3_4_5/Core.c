@@ -8,25 +8,76 @@ Core *initCore(Instruction_Memory *i_mem)
     core->instr_mem = i_mem;
     core->tick = tickFunc;
 
+    core->controlSigs = malloc(sizeof(ControlSignals)); 
+
     // FIXME, initialize register file here.
-    // core->data_mem[0] = ...
+    // core->reg_file[0] = ...
 
     // FIXME, initialize data memory here.
-    // core->reg_file[0] = ...
+    // core->data_mem[0] = ...
+    
 
     return core;
 }
 
+void printInstructionBinary(unsigned instruction){
+    
+    for (int i = 0; i < 32; ++i) {
+        if (instruction >> 31-i & 0x1) putchar('1');
+        else putchar('0');
+    }
+
+    putchar('\n');
+}
 // FIXME, implement this function
 bool tickFunc(Core *core)
 {
     // Steps may include
     // (Step 1) Reading instruction from instruction memory
     unsigned instruction = core->instr_mem->instructions[core->PC / 4].instruction;
+    unsigned instruction_addr = core->instr_mem->instructions[core->PC / 4].addr;
+
     
-    // (Step 2) ...
+
+    // (Step 2) get control signals, fill read and write registers, generate immediate, get ALU control signal
+
+    unsigned opcode = (instruction & 127);
+    unsigned immediate = ImmeGen(instruction, opcode);
+    unsigned rs2 = (instruction >> 20) & 31;
+    unsigned rs1 = (instruction >> 15) & 31;
+    unsigned rd = (instruction >> 7) & 15;
+    unsigned funct3 = (instruction >> 12) & 7;
+    unsigned funct7 = (instruction >> 25) & 127;
+
+    printf("%d\n", opcode);
+    ControlUnit(opcode, core->controlSigs);
+
+    unsigned ALU_ctrl_signal = ALUControlUnit(core->controlSigs->ALUOp, funct7, funct3);
+
+    
+    printf("instruction:    ");
+    printInstructionBinary(instruction);
+    printf("opcode:         ");
+    printInstructionBinary(opcode);
+    printf("immediate:      ");
+    printInstructionBinary(immediate);
+    printf("rs2:            ");
+    printInstructionBinary(rs2);
+    printf("rs1:            ");
+    printInstructionBinary(rs1);
+    printf("rd:             ");
+    printInstructionBinary(rd);
+    printf("funct7:         ");
+    printInstructionBinary(funct7);
+    printf("funct3:         ");
+    printInstructionBinary(funct3);
+    printf("\n");
+
     
     // (Step N) Increment PC. FIXME, is it correct to always increment PC by 4?!
+
+    //must be able to increment program counter from jump statements
+    //jump statement process if beq in the ALU evaluates to true, and if there is a jump statement
     core->PC += 4;
 
     ++core->clk;
@@ -44,7 +95,8 @@ void ControlUnit(Signal input,
 {
     // For R-type
     if (input == 51)
-    {
+    {   
+        printf("R type\n");
         signals->ALUSrc = 0;
         signals->MemtoReg = 0;
         signals->RegWrite = 1;
@@ -52,6 +104,45 @@ void ControlUnit(Signal input,
         signals->MemWrite = 0;
         signals->Branch = 0;
         signals->ALUOp = 2;
+    }
+
+    // For SB-type 
+    if (input == 99)
+    {
+        printf("SB type\n");
+        signals->ALUSrc = 0;
+        signals->MemtoReg = 0;
+        signals->RegWrite = 0;
+        signals->MemRead = 0;
+        signals->MemWrite = 0;
+        signals->Branch = 1;
+        signals->ALUOp = 1;
+    }
+
+    // For I-type
+    if (input == 3)
+    {
+        printf("I type\n");
+        signals->ALUSrc = 1;
+        signals->MemtoReg = 1;
+        signals->RegWrite = 1;
+        signals->MemRead = 1;
+        signals->MemWrite = 0;
+        signals->Branch = 0;
+        signals->ALUOp = 0;
+    }
+
+    // For I-type
+    if (input == 19)
+    {
+        printf("I type\n");
+        signals->ALUSrc = 1;
+        signals->MemtoReg = 0;
+        signals->RegWrite = 1;
+        signals->MemRead = 1;
+        signals->MemWrite = 0;
+        signals->Branch = 0;
+        signals->ALUOp = 0;
     }
 }
 
@@ -65,12 +156,51 @@ Signal ALUControlUnit(Signal ALUOp,
     {
         return 2;
     }
+    // For sub
+    if (ALUOp == 2 && Funct7 == 32 && Funct3 == 0)
+    {
+        return 6;
+    }
+    // For and
+    if (ALUOp == 2 && Funct7 == 0 && Funct3 == 7)
+    {
+        return 0;
+    }
+    // For or
+    if (ALUOp == 2 && Funct7 == 0 && Funct3 == 6)
+    {
+        return 1;
+    }
+    // For ld (in book as lw)
+    if (ALUOp == 0)
+    {
+        return 2;
+    }
+    // For bne (in book as beq)
+    if (ALUOp == 1)
+    {
+        return 6;
+    }
 }
 
 // FIXME (3). Imme. Generator
-Signal ImmeGen(Signal input)
-{
+Signal ImmeGen(Signal input, Signal opcode)
+{   
+    unsigned immediate = 0;
+    //I
+    if (opcode == 3)  immediate = input >> 20;
+    //SB
+    if (opcode == 99) {
+       
+        unsigned imm12, imm10_5, imm4_1, imm11;
+        imm12 = (input & 2147483648) >> 19;
+        imm10_5 = (input & 2113929216) >> 20;
+        imm4_1 = (input & 3840) >> 7;
+        imm11 = (input & 128) << 4;
+        immediate += imm4_1 + imm10_5 + imm11 + imm12;
 
+    } 
+    return immediate;
 }
 
 // FIXME (4). ALU

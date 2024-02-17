@@ -14,6 +14,17 @@ typedef uint8_t Byte;
 typedef int64_t Signal;
 typedef int64_t Register;
 
+typedef struct ControlSignals
+{
+    Signal Branch;
+    Signal MemRead;
+    Signal MemtoReg;
+    Signal ALUOp;
+    Signal MemWrite;
+    Signal ALUSrc;
+    Signal RegWrite;
+}ControlSignals;
+
 struct Core;
 typedef struct Core Core;
 typedef struct Core
@@ -23,6 +34,8 @@ typedef struct Core
 
     // What else you need? Data memory? Register file?
     Instruction_Memory *instr_mem;
+
+    ControlSignals *controlSigs;
    
     Byte data_mem[1024]; // data memory
 
@@ -36,16 +49,6 @@ bool tickFunc(Core *core);
 
 // FIXME. Implement the following functions in Core.c
 // FIXME (1). Control Unit.
-typedef struct ControlSignals
-{
-    Signal Branch;
-    Signal MemRead;
-    Signal MemtoReg;
-    Signal ALUOp;
-    Signal MemWrite;
-    Signal ALUSrc;
-    Signal RegWrite;
-}ControlSignals;
 void ControlUnit(Signal input,
                  ControlSignals *signals);
 
@@ -55,7 +58,7 @@ Signal ALUControlUnit(Signal ALUOp,
                       Signal Funct3);
 
 // FIXME (3). Imme. Generator
-Signal ImmeGen(Signal input);
+Signal ImmeGen(Signal input, Signal opcode);
 
 // FIXME (4). ALU
 void ALU(Signal input_0,
