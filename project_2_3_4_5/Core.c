@@ -98,7 +98,7 @@ bool tickFunc(Core *core)
     unsigned immediate = ImmeGen(instruction, opcode);
     unsigned rs2 = (instruction >> 20) & 31;
     unsigned rs1 = (instruction >> 15) & 31;
-    unsigned rd = (instruction >> 7) & 15;
+    unsigned rd = (instruction >> 7) & 31;
     unsigned funct3 = (instruction >> 12) & 7;
     unsigned funct7 = (instruction >> 25) & 127;
 
@@ -139,8 +139,19 @@ bool tickFunc(Core *core)
     dataMemoryGrab(core, rs1, immediate, core->ReadData);
 
     // printInstructionBinary(*core->ALU_result);
+<<<<<<< Updated upstream
 
     core->reg_file[rd] = MUX(core->controlSigs->MemtoReg, *core->ALU_result, core->ReadData);
+=======
+    if(core->controlSigs->MemRead){
+        temp = immediate+core->reg_file[rs1];
+        for(int i = temp, j=0; i<temp+8; i++,j+=8){
+            ReadData += core->data_mem[i]<<j;
+        }
+    }
+    if(core->controlSigs->RegWrite)
+        core->reg_file[rd] = MUX(core->controlSigs->MemtoReg, *core->ALU_result, ReadData);
+>>>>>>> Stashed changes
     // (Step N) Increment PC. FIXME, is it correct to always increment PC by 4?!
 
     //must be able to increment program counter from jump statements
@@ -202,7 +213,7 @@ void ControlUnit(Signal input,
     if (input == 19)
     {
         signals->ALUSrc = 1;
-        signals->MemtoReg = 1;
+        signals->MemtoReg = 0;
         signals->RegWrite = 1;
         signals->MemRead = 0;
         signals->MemWrite = 0;

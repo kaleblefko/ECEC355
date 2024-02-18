@@ -32,11 +32,13 @@ int main(int argc, const char *argv[])
         for(int i = 0; i<32; i++){
             printf("x%d %lld\n", i, core->reg_file[i]);
         }
+        printf("PC : %lld\n", core->PC);
     }
 
     printf("Simulation is finished.\n");
     for(int i = 0; i<32; i++){
         printf("x%d %lld\n", i, core->reg_file[i]);
     }
+    printf("PC : %lld\n", core->PC);
     free(core);    
 }
