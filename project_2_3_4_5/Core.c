@@ -60,6 +60,7 @@ Core *initCore(Instruction_Memory *i_mem)
     core->ALU_result = malloc(sizeof(Signal));
     core->Zero = malloc(sizeof(Signal));
     core->ALU_in_2 = malloc(sizeof(Signal));
+    core->ReadData = malloc(sizeof(Signal));
 
     return core;
 }
@@ -72,6 +73,16 @@ void printInstructionBinary(unsigned instruction){
     }
 
     putchar('\n');
+}
+
+void dataMemoryGrab(Core *core, unsigned rs1, unsigned immediate, int64_t *ReadData){
+    int64_t temp;
+    if(core->controlSigs->MemRead){
+    temp = immediate+core->reg_file[rs1];
+        for(int i = temp, j=0; i<temp+8; i++,j+=8){
+            *ReadData += core->data_mem[i]<<j;
+        }
+    }
 }
 // FIXME, implement this function
 bool tickFunc(Core *core)
@@ -124,16 +135,12 @@ bool tickFunc(Core *core)
     ALU(core->reg_file[rs1], *(core->ALU_in_2), ALUControlUnit(core->controlSigs->ALUOp, funct7, funct3), core->ALU_result, core->Zero);
     
     printf("ALU RESULT: %lld \n", *core->ALU_result);
-    int64_t temp;
-    int64_t ReadData=0;
+
+    dataMemoryGrab(core, rs1, immediate, core->ReadData);
+
     // printInstructionBinary(*core->ALU_result);
-    if(core->controlSigs->MemRead){
-        temp = immediate+core->reg_file[rs1];
-        for(int i = temp, j=0; i<temp+8; i++,j+=8){
-            ReadData += core->data_mem[i]<<j;
-        }
-    }
-    core->reg_file[rd] = MUX(core->controlSigs->MemtoReg, *core->ALU_result, ReadData);
+
+    core->reg_file[rd] = MUX(core->controlSigs->MemtoReg, *core->ALU_result, core->ReadData);
     // (Step N) Increment PC. FIXME, is it correct to always increment PC by 4?!
 
     //must be able to increment program counter from jump statements

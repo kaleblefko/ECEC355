@@ -45,6 +45,8 @@ typedef struct Core
     Signal *ALU_result;
     Signal *Zero;
 
+    int64_t *ReadData;
+
     bool (*tick)(Core *core);
 }Core;
 
