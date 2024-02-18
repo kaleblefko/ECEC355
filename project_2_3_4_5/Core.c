@@ -61,7 +61,6 @@ Core *initCore(Instruction_Memory *i_mem)
     core->Zero = malloc(sizeof(Signal));
     core->ALU_in_2 = malloc(sizeof(Signal));
 
-    
     return core;
 }
 
@@ -84,8 +83,6 @@ bool tickFunc(Core *core)
 
     // (Step 2) get control signals, fill read and write registers, generate immediate, get ALU control signal
 
-    
-
     unsigned opcode = (instruction & 127);
     unsigned immediate = ImmeGen(instruction, opcode);
     unsigned rs2 = (instruction >> 20) & 31;
@@ -94,45 +91,48 @@ bool tickFunc(Core *core)
     unsigned funct3 = (instruction >> 12) & 7;
     unsigned funct7 = (instruction >> 25) & 127;
 
-    printf("instruction:    ");
-    printInstructionBinary(instruction);
-    printf("opcode:         ");
-    printInstructionBinary(opcode);
-    printf("immediate:      ");
-    printInstructionBinary(immediate);
-    printf("rs2:            ");
-    printInstructionBinary(rs2);
-    printf("rs1:            ");
-    printInstructionBinary(rs1);
-    printf("rd:             ");
-    printInstructionBinary(rd);
-    printf("funct7:         ");
-    printInstructionBinary(funct7);
-    printf("funct3:         ");
-    printInstructionBinary(funct3);
-    printf("\n");
-
-    printf("%d\n", opcode);
     ControlUnit(opcode, core->controlSigs);
 
     unsigned ALU_ctrl_signal = ALUControlUnit(core->controlSigs->ALUOp, funct7, funct3);
 
-    
+    // printf("%d\n", opcode);
+    // ControlUnit(opcode, core->controlSigs);
 
+    // printf("instruction:    ");
+    // printInstructionBinary(instruction);
+    // printf("opcode:         ");
+    // printInstructionBinary(opcode);
+    // printf("immediate:      ");
+    // printInstructionBinary(immediate);
+    // printf("rs2:            ");
+    // printInstructionBinary(rs2);
+    // printf("rs1:            ");
+    // printInstructionBinary(rs1);
+    // printf("rd:             ");
+    // printInstructionBinary(rd);
+    // printf("funct7:         ");
+    // printInstructionBinary(funct7);
+    // printf("funct3:         ");
+    // printInstructionBinary(funct3);
+    // printf("\n");
 
     // Step 3, compute ALU computation based on ALUSrc, ALUOp (which sets ALU control pin), as well as rs1, rs2 and the immediate.
-
+    printf("func3: %d | aluop %ld | func7: %d | opcode: %d  ::  ", funct3, core->controlSigs->ALUOp, funct7, opcode);
     *core->ALU_in_2 = MUX(core->controlSigs->ALUSrc, core->reg_file[rs2], immediate);
 
+    
     ALU(core->reg_file[rs1], *(core->ALU_in_2), ALUControlUnit(core->controlSigs->ALUOp, funct7, funct3), core->ALU_result, core->Zero);
-    printf("ALU RESULT: %ld | ", *core->ALU_result) ;
-    printInstructionBinary(*core->ALU_result);
+    
+    printf("ALU RESULT: %ld \n", *core->ALU_result);
+    // printInstructionBinary(*core->ALU_result);
 
     // (Step N) Increment PC. FIXME, is it correct to always increment PC by 4?!
 
     //must be able to increment program counter from jump statements
     //jump statement process if beq in the ALU evaluates to true, and if there is a jump statement
-    core->PC += 4;
+    
+    if (core->controlSigs->Branch && core->Zero) core->PC = immediate;
+    else core->PC += 4;
 
     ++core->clk;
     // Are we reaching the final instruction?
@@ -150,7 +150,6 @@ void ControlUnit(Signal input,
     // For R-type
     if (input == 51)
     {   
-        printf("R type\n");
         signals->ALUSrc = 0;
         signals->MemtoReg = 0;
         signals->RegWrite = 1;
@@ -163,7 +162,6 @@ void ControlUnit(Signal input,
     // For SB-type 
     if (input == 99)
     {
-        printf("SB type\n");
         signals->ALUSrc = 0;
         signals->MemtoReg = 0;
         signals->RegWrite = 0;
@@ -176,7 +174,6 @@ void ControlUnit(Signal input,
     // For I-type
     if (input == 3)
     {
-        printf("I type\n");
         signals->ALUSrc = 1;
         signals->MemtoReg = 1;
         signals->RegWrite = 1;
@@ -189,14 +186,13 @@ void ControlUnit(Signal input,
     // For I-type
     if (input == 19)
     {
-        printf("I type\n");
         signals->ALUSrc = 1;
-        signals->MemtoReg = 0;
+        signals->MemtoReg = 1;
         signals->RegWrite = 1;
-        signals->MemRead = 1;
+        signals->MemRead = 0;
         signals->MemWrite = 0;
         signals->Branch = 0;
-        signals->ALUOp = 0;
+        signals->ALUOp = 2;
     }
 }
 
@@ -210,6 +206,13 @@ Signal ALUControlUnit(Signal ALUOp,
     {
         return 2;
     }
+
+    // For shift left
+    if (ALUOp == 2 && Funct7 == 0 && Funct3 == 1)
+    {
+        return 3;
+    }
+
     // For sub
     if (ALUOp == 2 && Funct7 == 32 && Funct3 == 0)
     {
@@ -242,7 +245,7 @@ Signal ImmeGen(Signal input, Signal opcode)
 {   
     unsigned immediate = 0;
     //I
-    if (opcode == 3)  immediate = input >> 20;
+    if (opcode == 3 || opcode == 19)  immediate = input >> 20;
     //SB
     if (opcode == 99) {
        
@@ -289,6 +292,13 @@ void ALU(Signal input_0,
     if (ALU_ctrl_signal == 1)
     {
         *ALU_result = (input_0 | input_1);
+        if (*ALU_result == 0) { *zero = 1; } else { *zero = 0; }
+    }
+
+    // For shift left
+    if (ALU_ctrl_signal == 3)
+    {
+        *ALU_result = (input_0 << input_1);
         if (*ALU_result == 0) { *zero = 1; } else { *zero = 0; }
     }
 }
