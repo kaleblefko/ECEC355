@@ -10,7 +10,7 @@ Core *initCore(Instruction_Memory *i_mem)
 
     core->controlSigs = malloc(sizeof(ControlSignals)); 
 
-    // FIXME, initialize register file here.
+    // initialize register file here.
     // core->reg_file[0] = ...
     core->reg_file[8] = 16;
     core->reg_file[10] = 4;
@@ -19,9 +19,8 @@ Core *initCore(Instruction_Memory *i_mem)
     core->reg_file[24] = 0;
     core->reg_file[25] = 4;
 
-    // FIXME, initialize data memory here.
+    // initialize data memory here.
     // core->data_mem[0] = ...
-    uint64_t arr[] = {16, 128, 8, 4};
     core->data_mem[0] = 16;
     core->data_mem[1] = 0;
     core->data_mem[2] = 0;
@@ -58,6 +57,10 @@ Core *initCore(Instruction_Memory *i_mem)
     core->data_mem[30] = 0;
     core->data_mem[31] = 0;
 
+    core->ALU_result = malloc(sizeof(Signal));
+    core->Zero = malloc(sizeof(Signal));
+    core->ALU_in_2 = malloc(sizeof(Signal));
+
     
     return core;
 }
@@ -65,7 +68,7 @@ Core *initCore(Instruction_Memory *i_mem)
 void printInstructionBinary(unsigned instruction){
     
     for (int i = 0; i < 32; ++i) {
-        if (instruction >> (31-i) & 0x1) putchar('1');
+        if (instruction >> 31-i & 0x1) putchar('1');
         else putchar('0');
     }
 
@@ -79,9 +82,9 @@ bool tickFunc(Core *core)
     unsigned instruction = core->instr_mem->instructions[core->PC / 4].instruction;
     unsigned instruction_addr = core->instr_mem->instructions[core->PC / 4].addr;
 
-    
-
     // (Step 2) get control signals, fill read and write registers, generate immediate, get ALU control signal
+
+    
 
     unsigned opcode = (instruction & 127);
     unsigned immediate = ImmeGen(instruction, opcode);
@@ -91,12 +94,6 @@ bool tickFunc(Core *core)
     unsigned funct3 = (instruction >> 12) & 7;
     unsigned funct7 = (instruction >> 25) & 127;
 
-    printf("%d\n", opcode);
-    ControlUnit(opcode, core->controlSigs);
-
-    unsigned ALU_ctrl_signal = ALUControlUnit(core->controlSigs->ALUOp, funct7, funct3);
-
-    
     printf("instruction:    ");
     printInstructionBinary(instruction);
     printf("opcode:         ");
@@ -115,7 +112,22 @@ bool tickFunc(Core *core)
     printInstructionBinary(funct3);
     printf("\n");
 
+    printf("%d\n", opcode);
+    ControlUnit(opcode, core->controlSigs);
+
+    unsigned ALU_ctrl_signal = ALUControlUnit(core->controlSigs->ALUOp, funct7, funct3);
+
     
+
+
+    // Step 3, compute ALU computation based on ALUSrc, ALUOp (which sets ALU control pin), as well as rs1, rs2 and the immediate.
+
+    *core->ALU_in_2 = MUX(core->controlSigs->ALUSrc, core->reg_file[rs2], immediate);
+
+    ALU(core->reg_file[rs1], *(core->ALU_in_2), ALUControlUnit(core->controlSigs->ALUOp, funct7, funct3), core->ALU_result, core->Zero);
+    printf("ALU RESULT: %ld | ", *core->ALU_result) ;
+    printInstructionBinary(*core->ALU_result);
+
     // (Step N) Increment PC. FIXME, is it correct to always increment PC by 4?!
 
     //must be able to increment program counter from jump statements
@@ -225,7 +237,7 @@ Signal ALUControlUnit(Signal ALUOp,
     }
 }
 
-// FIXME (3). Imme. Generator
+// Imme. Generator
 Signal ImmeGen(Signal input, Signal opcode)
 {   
     unsigned immediate = 0;
@@ -256,6 +268,27 @@ void ALU(Signal input_0,
     if (ALU_ctrl_signal == 2)
     {
         *ALU_result = (input_0 + input_1);
+        if (*ALU_result == 0) { *zero = 1; } else { *zero = 0; }
+    }
+
+    // For subtraction
+    if (ALU_ctrl_signal == 6)
+    {
+        *ALU_result = (input_0 - input_1);
+        if (*ALU_result == 0) { *zero = 1; } else { *zero = 0; }
+    }
+
+    // For and
+    if (ALU_ctrl_signal == 0)
+    {
+        *ALU_result = (input_0 & input_1);
+        if (*ALU_result == 0) { *zero = 1; } else { *zero = 0; }
+    }
+    
+    // For or
+    if (ALU_ctrl_signal == 1)
+    {
+        *ALU_result = (input_0 | input_1);
         if (*ALU_result == 0) { *zero = 1; } else { *zero = 0; }
     }
 }

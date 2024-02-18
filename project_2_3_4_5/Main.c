@@ -23,11 +23,10 @@ int main(int argc, const char *argv[])
     // TODO, implement Core.{h,c}
     Core *core = initCore(&instr_mem);
 
+    
+
     /* Task Three - Simulation */
     while (core->tick(core));
-    for(int i = 0; i < 1024; i++){
-        printf("Data [%d] : %hhu\n", i, core->data_mem[i]);
-    }
 
     printf("Simulation is finished.\n");
 

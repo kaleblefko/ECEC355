@@ -41,6 +41,10 @@ typedef struct Core
 
     Register reg_file[32]; // register file.
 
+    Signal *ALU_in_2;
+    Signal *ALU_result;
+    Signal *Zero;
+
     bool (*tick)(Core *core);
 }Core;
 
