@@ -128,13 +128,13 @@ bool tickFunc(Core *core)
     // printf("\n");
 
     // Step 3, compute ALU computation based on ALUSrc, ALUOp (which sets ALU control pin), as well as rs1, rs2 and the immediate.
-    printf("func3: %d | aluop %lld | func7: %d | opcode: %d  ::  ", funct3, core->controlSigs->ALUOp, funct7, opcode);
+    // printf("func3: %d | aluop %lld | func7: %d | opcode: %d  ::  ", funct3, core->controlSigs->ALUOp, funct7, opcode);
     *core->ALU_in_2 = MUX(core->controlSigs->ALUSrc, core->reg_file[rs2], immediate);
 
     
     ALU(core->reg_file[rs1], *(core->ALU_in_2), ALUControlUnit(core->controlSigs->ALUOp, funct7, funct3), core->ALU_result, core->Zero);
     
-    printf("ALU RESULT: %lld \n", *core->ALU_result);
+    // printf("ALU RESULT: %lld \n", *core->ALU_result);
 
     dataMemoryGrab(core, rs1, immediate, core->ReadData);
 

@@ -23,18 +23,9 @@ int main(int argc, const char *argv[])
     // TODO, implement Core.{h,c}
     Core *core = initCore(&instr_mem);
 
-    
-    int j = 1;
     /* Task Three - Simulation */
-    while (core->tick(core)){
-        printf("Command %d\n", j);
-        j++;
-        for(int i = 0; i<32; i++){
-            printf("x%d %lld\n", i, core->reg_file[i]);
-        }
-        printf("PC : %lld\n", core->PC);
-    }
-
+    while (core->tick(core));
+    
     printf("Simulation is finished.\n");
     for(int i = 0; i<32; i++){
         printf("x%d %lld\n", i, core->reg_file[i]);
