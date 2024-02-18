@@ -12,14 +12,25 @@ Core *initCore(Instruction_Memory *i_mem)
 
     // FIXME, initialize register file here.
     // core->reg_file[0] = ...
-    for(int x = 0; x < 32; x++){
-        core->reg_file[x] = 0;
-    }
+    core->reg_file[8] = 16;
+    core->reg_file[10] = 4;
+    core->reg_file[11] = 0;
+    core->reg_file[22] = 1;
+    core->reg_file[24] = 0;
+    core->reg_file[25] = 4;
 
     // FIXME, initialize data memory here.
     // core->data_mem[0] = ...
-    for(int d = 0; d < 1024; d++){
-        core->data_mem[d] = 0;
+    uint64_t arr[] = {16, 128, 8, 4};
+    for(int i = 0; i < sizeof(arr)/sizeof(uint64_t); i++){
+        for(int j = i, k=0; j < 32*(i+1); j++,k++){
+            if(arr[k] >> (31-i) & 0x1){
+                core->data_mem[j] = 1;
+            }else{
+                core->data_mem[j] = 0;
+            }
+
+        }
     }
     
     return core;
