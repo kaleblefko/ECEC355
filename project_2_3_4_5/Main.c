@@ -24,11 +24,19 @@ int main(int argc, const char *argv[])
     Core *core = initCore(&instr_mem);
 
     
-
+    int j = 1;
     /* Task Three - Simulation */
-    while (core->tick(core));
+    while (core->tick(core)){
+        printf("Command %d\n", j);
+        j++;
+        for(int i = 0; i<32; i++){
+            printf("x%d %lld\n", i, core->reg_file[i]);
+        }
+    }
 
     printf("Simulation is finished.\n");
-
+    for(int i = 0; i<32; i++){
+        printf("x%d %lld\n", i, core->reg_file[i]);
+    }
     free(core);    
 }

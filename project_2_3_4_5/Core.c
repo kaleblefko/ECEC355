@@ -67,7 +67,7 @@ Core *initCore(Instruction_Memory *i_mem)
 void printInstructionBinary(unsigned instruction){
     
     for (int i = 0; i < 32; ++i) {
-        if (instruction >> 31-i & 0x1) putchar('1');
+        if (instruction >> (31-i) & 0x1) putchar('1');
         else putchar('0');
     }
 
@@ -117,15 +117,23 @@ bool tickFunc(Core *core)
     // printf("\n");
 
     // Step 3, compute ALU computation based on ALUSrc, ALUOp (which sets ALU control pin), as well as rs1, rs2 and the immediate.
-    printf("func3: %d | aluop %ld | func7: %d | opcode: %d  ::  ", funct3, core->controlSigs->ALUOp, funct7, opcode);
+    printf("func3: %d | aluop %lld | func7: %d | opcode: %d  ::  ", funct3, core->controlSigs->ALUOp, funct7, opcode);
     *core->ALU_in_2 = MUX(core->controlSigs->ALUSrc, core->reg_file[rs2], immediate);
 
     
     ALU(core->reg_file[rs1], *(core->ALU_in_2), ALUControlUnit(core->controlSigs->ALUOp, funct7, funct3), core->ALU_result, core->Zero);
     
-    printf("ALU RESULT: %ld \n", *core->ALU_result);
+    printf("ALU RESULT: %lld \n", *core->ALU_result);
+    int64_t temp;
+    int64_t ReadData=0;
     // printInstructionBinary(*core->ALU_result);
-
+    if(core->controlSigs->MemRead){
+        temp = immediate+core->reg_file[rs1];
+        for(int i = temp, j=0; i<temp+8; i++,j+=8){
+            ReadData += core->data_mem[i]<<j;
+        }
+    }
+    core->reg_file[rd] = MUX(core->controlSigs->MemtoReg, *core->ALU_result, ReadData);
     // (Step N) Increment PC. FIXME, is it correct to always increment PC by 4?!
 
     //must be able to increment program counter from jump statements
