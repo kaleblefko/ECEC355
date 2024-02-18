@@ -139,19 +139,8 @@ bool tickFunc(Core *core)
     dataMemoryGrab(core, rs1, immediate, core->ReadData);
 
     // printInstructionBinary(*core->ALU_result);
-<<<<<<< Updated upstream
-
-    core->reg_file[rd] = MUX(core->controlSigs->MemtoReg, *core->ALU_result, core->ReadData);
-=======
-    if(core->controlSigs->MemRead){
-        temp = immediate+core->reg_file[rs1];
-        for(int i = temp, j=0; i<temp+8; i++,j+=8){
-            ReadData += core->data_mem[i]<<j;
-        }
-    }
     if(core->controlSigs->RegWrite)
-        core->reg_file[rd] = MUX(core->controlSigs->MemtoReg, *core->ALU_result, ReadData);
->>>>>>> Stashed changes
+        core->reg_file[rd] = MUX(core->controlSigs->MemtoReg, *core->ALU_result, *core->ReadData);
     // (Step N) Increment PC. FIXME, is it correct to always increment PC by 4?!
 
     //must be able to increment program counter from jump statements
@@ -264,6 +253,7 @@ Signal ALUControlUnit(Signal ALUOp,
     {
         return 6;
     }
+    return -1;
 }
 
 // Imme. Generator
