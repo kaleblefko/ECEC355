@@ -12,50 +12,32 @@ Core *initCore(Instruction_Memory *i_mem)
 
     // initialize register file here.
     // core->reg_file[0] = ...
-    core->reg_file[8] = 16;
-    core->reg_file[10] = 4;
-    core->reg_file[11] = 0;
-    core->reg_file[22] = 1;
-    core->reg_file[24] = 0;
-    core->reg_file[25] = 4;
+    core->reg_file[1] = 0;
+    core->reg_file[2] = 10;
+    core->reg_file[3] = -15;
+    core->reg_file[4] = 20;
+    core->reg_file[5] = 30;
+    core->reg_file[6] = -35;
 
     // initialize data memory here.
     // core->data_mem[0] = ...
-    core->data_mem[0] = 16;
-    core->data_mem[1] = 0;
-    core->data_mem[2] = 0;
-    core->data_mem[3] = 0;
-    core->data_mem[4] = 0;
-    core->data_mem[5] = 0;
-    core->data_mem[6] = 0;
-    core->data_mem[7] = 0;
+    core->data_mem[40] = -63;
+    core->data_mem[41] = 0;
+    core->data_mem[42] = 0;
+    core->data_mem[43] = 0;
+    core->data_mem[44] = 0;
+    core->data_mem[45] = 0;
+    core->data_mem[46] = 0;
+    core->data_mem[47] = 0;
 
-    core->data_mem[8] = 128;
-    core->data_mem[9] = 0;
-    core->data_mem[10] = 0;
-    core->data_mem[11] = 0;
-    core->data_mem[12] = 0;
-    core->data_mem[13] = 0;
-    core->data_mem[14] = 0;
-    core->data_mem[15] = 0;
-
-    core->data_mem[16] = 8;
-    core->data_mem[17] = 0;
-    core->data_mem[18] = 0;
-    core->data_mem[19] = 0;
-    core->data_mem[20] = 0;
-    core->data_mem[21] = 0;
-    core->data_mem[22] = 0;
-    core->data_mem[23] = 0;
-
-    core->data_mem[24] = 4;
-    core->data_mem[25] = 0;
-    core->data_mem[26] = 0;
-    core->data_mem[27] = 0;
-    core->data_mem[28] = 0;
-    core->data_mem[29] = 0;
-    core->data_mem[30] = 0;
-    core->data_mem[31] = 0;
+    core->data_mem[48] = 63;
+    core->data_mem[49] = 0;
+    core->data_mem[50] = 0;
+    core->data_mem[51] = 0;
+    core->data_mem[52] = 0;
+    core->data_mem[53] = 0;
+    core->data_mem[54] = 0;
+    core->data_mem[55] = 0;
 
     core->ALU_result = malloc(sizeof(Signal));
     core->Zero = malloc(sizeof(Signal));
