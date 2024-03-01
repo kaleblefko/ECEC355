@@ -67,6 +67,9 @@ void dataMemoryGrab(Core *core, unsigned rs1, unsigned immediate, int64_t *ReadD
     }
 }
 // FIXME, implement this function
+
+
+
 bool tickFunc(Core *core)
 {
     // Steps may include

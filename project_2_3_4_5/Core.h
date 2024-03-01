@@ -19,11 +19,53 @@ typedef struct ControlSignals
     Signal Branch;
     Signal MemRead;
     Signal MemtoReg;
+
+    
     Signal ALUOp;
     Signal MemWrite;
     Signal ALUSrc;
     Signal RegWrite;
 }ControlSignals;
+
+typedef struct WB
+{
+
+}WB;
+
+typedef struct M
+{
+
+}M;
+
+typedef struct EX
+{
+    
+}EX;
+
+typedef struct IF_ID
+{
+    Signal *PC;
+    Signal *InstructionMemory;
+
+}IF_ID;
+
+typedef struct ID_EX
+{
+
+
+}ID_EX;
+
+typedef struct EX_MEM
+{
+
+}EX_MEM;
+
+typedef struct MEM_WB
+{
+
+}MEM_WB;
+
+
 
 struct Core;
 typedef struct Core Core;
