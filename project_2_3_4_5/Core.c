@@ -44,6 +44,26 @@ Core *initCore(Instruction_Memory *i_mem)
     core->ALU_in_2 = malloc(sizeof(Signal));
     core->ReadData = malloc(sizeof(Signal));
 
+    core->ifid_reg = malloc(sizeof(IF_ID));
+
+    core->idex_reg = malloc(sizeof(ID_EX));
+        core->idex_reg->writeback_IDEX = malloc(sizeof(WB_IDEX));
+        core->idex_reg->memory_IDEX = malloc(sizeof(M_IDEX));
+        core->idex_reg->execute_IDEX = malloc(sizeof(EX_IDEX));
+
+    core->exmem_reg = malloc(sizeof(EX_MEM));
+        core->exmem_reg->writeback_EXMEM = malloc(sizeof(WB_EXMEM));
+        core->exmem_reg->memory_EXMEM = malloc(sizeof(M_EXMEM));
+
+    core->memwb_reg = malloc(sizeof(MEM_WB));
+        core->memwb_reg->ReadData = malloc(sizeof(int64_t));
+        core->memwb_reg->ALU_result = malloc(sizeof(Signal));
+        core->memwb_reg->writeback_MEMWB = malloc(sizeof(WB_MEMWB));
+
+    core->ifid_reg->empty = 1;
+    core->idex_reg->empty = 1;
+    core->exmem_reg->empty = 1;
+    core->memwb_reg->empty = 1;
     return core;
 }
 
@@ -57,30 +77,61 @@ void printInstructionBinary(unsigned instruction){
     putchar('\n');
 }
 
-void dataMemoryGrab(Core *core, unsigned rs1, unsigned immediate, int64_t *ReadData){
+void dataMemoryGrab(Core* core, EX_MEM *exmemreg, unsigned rs1, unsigned immediate, int64_t *ReadData){
     int64_t temp;
-    if(core->controlSigs->MemRead){
-    temp = immediate+core->reg_file[rs1];
-        for(int i = temp, j=0; i<temp+8; i++,j+=8){
-            *ReadData += core->data_mem[i]<<j;
-        }
+    if(exmemreg->memory_EXMEM->MemRead){
+        temp = immediate+core->reg_file[rs1];
+            for(int i = temp, j=0; i<temp+8; i++,j+=8){
+                *ReadData += core->data_mem[i]<<j;
+            }
     }
 }
+
+// void old_dataMemoryGrab(Core *core, unsigned rs1, unsigned immediate, int64_t *ReadData){
+//     int64_t temp;
+//     if(core->controlSigs->MemRead){
+//     temp = immediate+core->reg_file[rs1];
+//         for(int i = temp, j=0; i<temp+8; i++,j+=8){
+//             *ReadData += core->data_mem[i]<<j;
+//         }
+//     }
+// }
 // FIXME, implement this function
 
 bool tickFunc(Core *core)
 {
-    // Steps may include
-    // (Step 1) Reading instruction from instruction memory
-    
 
-    // (Step 2) get control signals, fill read and write registers, generate immediate, get ALU control signal
+    if(!core->memwb_reg->empty){ 
+        writeBackStage(core);
+    }
+    else{
+        ++core->clk;
+        return false;
+    }
 
-    
+    if(!core->exmem_reg->empty){ 
+        memoryStage(core);
+    }
+    else core->memwb_reg->empty = 1;
 
-    ControlUnit(opcode, core->controlSigs);
+    if(!core->idex_reg->empty){
+        executeStage(core);
+    }
+    else core->exmem_reg->empty = 1;
 
-    unsigned ALU_ctrl_signal = ALUControlUnit(core->controlSigs->ALUOp, funct7, funct3);
+    if(!core->ifid_reg->empty){
+        decodeStage(core);
+    }
+    else core->idex_reg->empty = 1;
+
+    if(!(core->PC > core->instr_mem->last->addr)){
+        fetchStage(core);
+        core->PC += 4;  
+    }
+    else core->ifid_reg->empty = 1;
+    ++core->clk;
+    return true;
+        
 
     // printf("%d\n", opcode);
     // ControlUnit(opcode, core->controlSigs);
@@ -105,33 +156,21 @@ bool tickFunc(Core *core)
 
     // Step 3, compute ALU computation based on ALUSrc, ALUOp (which sets ALU control pin), as well as rs1, rs2 and the immediate.
     // printf("func3: %d | aluop %lld | func7: %d | opcode: %d  ::  ", funct3, core->controlSigs->ALUOp, funct7, opcode);
-    *core->ALU_in_2 = MUX(core->controlSigs->ALUSrc, core->reg_file[rs2], immediate);
+    
 
     
-    ALU(core->reg_file[rs1], *(core->ALU_in_2), ALUControlUnit(core->controlSigs->ALUOp, funct7, funct3), core->ALU_result, core->Zero);
+    
     
     // printf("ALU RESULT: %lld \n", *core->ALU_result);
 
-    dataMemoryGrab(core, rs1, immediate, core->ReadData);
+    
 
     // printInstructionBinary(*core->ALU_result);
-    if(core->controlSigs->RegWrite)
-        core->reg_file[rd] = MUX(core->controlSigs->MemtoReg, *core->ALU_result, *core->ReadData);
+    
     // (Step N) Increment PC. FIXME, is it correct to always increment PC by 4?!
 
     //must be able to increment program counter from jump statements
     //jump statement process if beq in the ALU evaluates to true, and if there is a jump statement
-    
-    if (core->controlSigs->Branch && core->Zero) core->PC = immediate;
-    else core->PC += 4;
-
-    ++core->clk;
-    // Are we reaching the final instruction?
-    if (core->PC > core->instr_mem->last->addr)
-    {
-        return false;
-    }
-    return true;
 }
 
 // FIXME (1). Control Unit. Refer to Figure 4.18.
@@ -318,37 +357,78 @@ Signal ShiftLeft1(Signal input)
 
 void loadFetch(Core *core){
 
-    core->ifid->PC = core->PC;
-    core->ifid->Instruction = 
+    
 }
 
 void fetchStage(Core *core){
 
-
-    unsigned instruction = core->instr_mem->instructions[core->PC / 4].instruction;
-    unsigned instruction_addr = core->instr_mem->instructions[core->PC / 4].addr;
+    core->ifid_reg->PC = core->PC;
+    core->ifid_reg->Instruction = core->instr_mem->instructions[core->ifid_reg->PC / 4].instruction;
 
 }
 
 void decodeStage(Core *core){
 
-    unsigned opcode = (instruction & 127);
-    unsigned immediate = ImmeGen(instruction, opcode);
-    unsigned rs2 = (instruction >> 20) & 31;
-    unsigned rs1 = (instruction >> 15) & 31;
-    unsigned rd = (instruction >> 7) & 31;
-    unsigned funct3 = (instruction >> 12) & 7;
-    unsigned funct7 = (instruction >> 25) & 127;
+
+    core->idex_reg->PC = core->ifid_reg->PC;
+
+    core->idex_reg->opcode = (core->ifid_reg->Instruction & 127);
+    core->idex_reg->immediate = ImmeGen(core->ifid_reg->Instruction, core->idex_reg->opcode);
+    core->idex_reg->rs2 = (core->ifid_reg->Instruction >> 20) & 31;
+    core->idex_reg->rs1 = (core->ifid_reg->Instruction >> 15) & 31;
+    core->idex_reg->rd = (core->ifid_reg->Instruction >> 7) & 31;
+    core->idex_reg->funct3 = (core->ifid_reg->Instruction >> 12) & 7;
+    core->idex_reg->funct7 = (core->ifid_reg->Instruction >> 25) & 127;
+
+    ControlUnit(core->idex_reg->opcode, core->controlSigs);
+    
+    core->idex_reg->memory_IDEX->Branch = core->controlSigs->Branch;
+    core->idex_reg->memory_IDEX->MemRead = core->controlSigs->MemRead;
+    core->idex_reg->memory_IDEX->MemWrite = core->controlSigs->MemWrite;
+
+    core->idex_reg->writeback_IDEX->MemtoReg = core->controlSigs->MemtoReg;
+    core->idex_reg->writeback_IDEX->RegWrite = core->controlSigs->RegWrite;
+    
+    core->idex_reg->execute_IDEX->ALUOp = core->controlSigs->ALUOp;
+    core->idex_reg->execute_IDEX->ALUSrc = core->controlSigs->ALUSrc;
+    
+
 }
 
 void executeStage(Core *core){
+
+    Signal ALU_in_2 = MUX(core->idex_reg->execute_IDEX->ALUSrc, core->reg_file[core->idex_reg->rs2], core->idex_reg->immediate);
+    ALU(core->reg_file[core->idex_reg->rs1], ALU_in_2, ALUControlUnit(core->idex_reg->execute_IDEX->ALUOp, core->idex_reg->funct7, core->idex_reg->funct3), core->exmem_reg->ALU_result, core->exmem_reg->zero);
+    
+    core->exmem_reg->add_sum = core->idex_reg->PC + core->idex_reg->immediate;
+    core->exmem_reg->rs2 = core->idex_reg->rs2;
+    core->exmem_reg->rd = core->idex_reg->rd;
+
+    core->exmem_reg->writeback_EXMEM = core->idex_reg->writeback_IDEX;
+    core->exmem_reg->memory_EXMEM = core->idex_reg->memory_IDEX;
 
 }
 
 void memoryStage(Core *core){
 
+    core->memwb_reg->writeback_MEMWB = core->exmem_reg->writeback_EXMEM;
+    core->memwb_reg->ALU_result = core->exmem_reg->ALU_result;
+    core->memwb_reg->rd = core->exmem_reg->rd;
+
+    if (core->exmem_reg->zero && core->exmem_reg->memory_EXMEM){
+        core->PCsrc = 1;
+    }
+    else 
+        core->PCsrc = 0;
+
+    dataMemoryGrab(core, core->idex_reg,  core->exmem_reg->rs2, core->exmem_reg->ALU_result, core->memwb_reg->ReadData);
+    
+
 }
 
 void writeBackStage(Core *core){
+
+    if(core->memwb_reg->writeback_MEMWB->RegWrite)
+        core->reg_file[core->memwb_reg->rd] = MUX(core->memwb_reg->writeback_MEMWB->MemtoReg, core->exmem_reg->ALU_result, core->memwb_reg->ReadData);
 
 }

@@ -36,25 +36,25 @@ typedef struct ControlSignals
 typedef struct WB_IDEX
 {
 
-    Signal *Branch;
-    Signal *MemRead;
+    Signal RegWrite;
+    Signal MemtoReg;
 
 }WB_IDEX;
 
 typedef struct M_IDEX
 {
 
-    Signal *MemtoReg;
-    Signal *ALUOp;
-    Signal *MemWrite;
+    Signal MemWrite;
+    Signal Branch;
+    Signal MemRead;
 
 }M_IDEX;
 
 typedef struct EX_IDEX
 {
 
-    Signal *ALUSrc;
-    Signal *RegWrite;
+    Signal ALUSrc;
+    Signal ALUOp;
     
 }EX_IDEX;
 
@@ -63,17 +63,17 @@ typedef struct EX_IDEX
 typedef struct WB_EXMEM
 {
 
-    Signal *Branch;
-    Signal *MemRead;
+    Signal RegWrite;
+    Signal MemtoReg;
 
 }WB_EXMEM;
 
 typedef struct M_EXMEM
 {
 
-    Signal *MemtoReg;
-    Signal *ALUOp;
-    Signal *MemWrite;    
+    Signal MemWrite;
+    Signal Branch;
+    Signal MemRead;  
 
 }M_EXMEM;
 
@@ -81,8 +81,8 @@ typedef struct M_EXMEM
 typedef struct WB_MEMWB
 {
 
-    Signal *Branch;
-    Signal *MemRead;    
+    Signal RegWrite;
+    Signal MemtoReg;    
 
 }WB_MEMWB;
 
@@ -90,23 +90,25 @@ typedef struct WB_MEMWB
 
 typedef struct IF_ID
 {
-
-    Signal *PC;
-    Signal *InstructionMemory;
+    int empty;
+    Addr PC;
+    unsigned Instruction;
 
 }IF_ID;
 
 typedef struct ID_EX
 {
+    int empty;
+    Addr PC;
 
-    Signal *PC;
+    unsigned rs1;
+    unsigned rs2;
+    unsigned immediate;
+    unsigned funct3;
+    unsigned funct7;
+    unsigned rd;
+    unsigned opcode;
 
-    Register *Read_data_1;
-    Register *Read_data_2;
-    Signal *Immediate;
-    unsigned *funt3;
-    unsigned *funct7_bit;
-    unsigned *rd;
     WB_IDEX *writeback_IDEX;
     M_IDEX *memory_IDEX;
     EX_IDEX *execute_IDEX;
@@ -115,12 +117,13 @@ typedef struct ID_EX
 
 typedef struct EX_MEM
 {   
+    int empty;
+    Signal add_sum;
+    Signal zero;
+    Signal ALU_result;
+    unsigned rs2;
+    unsigned rd;
 
-    Signal *add_sum;
-    Signal *zero;
-    Signal *ALU_result;
-    Register *Read_data_2;
-    unsigned *rd;
     WB_EXMEM *writeback_EXMEM;
     M_EXMEM *memory_EXMEM;
 
@@ -128,10 +131,10 @@ typedef struct EX_MEM
 
 typedef struct MEM_WB
 {
-
-    Byte *read_from_data_memory;
+    int empty;
+    int64_t *ReadData;
     Signal *ALU_result;
-    unsigned *rd;
+    unsigned rd;
     WB_MEMWB *writeback_MEMWB;
 
 }MEM_WB;
@@ -144,6 +147,7 @@ typedef struct Core
 {
     Tick clk; // Keep track of core clock
     Addr PC; // Keep track of program counter
+    Signal *PCsrc;
 
     // What else you need? Data memory? Register file?
     Instruction_Memory *instr_mem;
@@ -166,7 +170,6 @@ typedef struct Core
     ID_EX *idex_reg;
     EX_MEM *exmem_reg;
     MEM_WB *memwb_reg;
-
 
 
 
