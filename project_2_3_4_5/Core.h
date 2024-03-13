@@ -28,6 +28,7 @@ typedef struct ControlSignals
 
 
 
+
 }ControlSignals;
 
 
@@ -160,6 +161,12 @@ typedef struct Core
     int64_t *ReadData;
 
     bool (*tick)(Core *core);
+
+    IF_ID *ifid_reg;
+    ID_EX *idex_reg;
+    EX_MEM *exmem_reg;
+    MEM_WB *memwb_reg;
+
 
 
 

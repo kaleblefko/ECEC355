@@ -72,18 +72,11 @@ bool tickFunc(Core *core)
 {
     // Steps may include
     // (Step 1) Reading instruction from instruction memory
-    unsigned instruction = core->instr_mem->instructions[core->PC / 4].instruction;
-    unsigned instruction_addr = core->instr_mem->instructions[core->PC / 4].addr;
+    
 
     // (Step 2) get control signals, fill read and write registers, generate immediate, get ALU control signal
 
-    unsigned opcode = (instruction & 127);
-    unsigned immediate = ImmeGen(instruction, opcode);
-    unsigned rs2 = (instruction >> 20) & 31;
-    unsigned rs1 = (instruction >> 15) & 31;
-    unsigned rd = (instruction >> 7) & 31;
-    unsigned funct3 = (instruction >> 12) & 7;
-    unsigned funct7 = (instruction >> 25) & 127;
+    
 
     ControlUnit(opcode, core->controlSigs);
 
@@ -323,12 +316,29 @@ Signal ShiftLeft1(Signal input)
     return input << 1;
 }
 
+void loadFetch(Core *core){
+
+    core->ifid->PC = core->PC;
+    core->ifid->Instruction = 
+}
+
 void fetchStage(Core *core){
+
+
+    unsigned instruction = core->instr_mem->instructions[core->PC / 4].instruction;
+    unsigned instruction_addr = core->instr_mem->instructions[core->PC / 4].addr;
 
 }
 
 void decodeStage(Core *core){
 
+    unsigned opcode = (instruction & 127);
+    unsigned immediate = ImmeGen(instruction, opcode);
+    unsigned rs2 = (instruction >> 20) & 31;
+    unsigned rs1 = (instruction >> 15) & 31;
+    unsigned rd = (instruction >> 7) & 31;
+    unsigned funct3 = (instruction >> 12) & 7;
+    unsigned funct7 = (instruction >> 25) & 127;
 }
 
 void executeStage(Core *core){
