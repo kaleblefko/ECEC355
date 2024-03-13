@@ -86,10 +86,9 @@ typedef struct WB_MEMWB
 
 typedef struct IF_ID
 {
-
     Signal *PC;
     Signal *InstructionMemory;
-
+    unsigned *instruction;
 }IF_ID;
 
 typedef struct ID_EX
@@ -103,6 +102,7 @@ typedef struct ID_EX
     unsigned *funt3;
     unsigned *funct7_bit;
     unsigned *rd;
+    unsigned *opcode;
     WB_IDEX *writeback_IDEX;
     M_IDEX *memory_IDEX;
     EX_IDEX *execute_IDEX;
