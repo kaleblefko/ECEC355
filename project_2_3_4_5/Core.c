@@ -323,8 +323,8 @@ Signal ShiftLeft1(Signal input)
 
 void loadFetch(Core *core){
 
-    core->ifid->PC = core->PC;
-    core->ifid->Instruction = 
+    core->ifid_reg->PC = core->PC;
+    core->ifid_reg->InstructionMemory = 
 }
 
 void fetchStage(Core *core){
