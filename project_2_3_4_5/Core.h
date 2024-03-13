@@ -25,10 +25,6 @@ typedef struct ControlSignals
     Signal MemWrite;
     Signal ALUSrc;
     Signal RegWrite;
-
-
-
-
 }ControlSignals;
 
 
@@ -166,11 +162,6 @@ typedef struct Core
     ID_EX *idex_reg;
     EX_MEM *exmem_reg;
     MEM_WB *memwb_reg;
-
-
-
-
-
 }Core;
 
 Core *initCore(Instruction_Memory *i_mem);

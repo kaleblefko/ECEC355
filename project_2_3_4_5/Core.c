@@ -44,6 +44,11 @@ Core *initCore(Instruction_Memory *i_mem)
     core->ALU_in_2 = malloc(sizeof(Signal));
     core->ReadData = malloc(sizeof(Signal));
 
+    core->ifid_reg = malloc(sizeof(IF_ID));
+    core->idex_reg = malloc(sizeof(ID_EX));
+    core->exmem_reg = malloc(sizeof(EX_MEM));
+    core->memwb_reg = malloc(sizeof(MEM_WB));
+
     return core;
 }
 
