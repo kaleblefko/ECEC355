@@ -25,7 +25,9 @@ typedef struct ControlSignals
     Signal MemWrite;
     Signal ALUSrc;
     Signal RegWrite;
-    
+
+
+
 }ControlSignals;
 
 
@@ -104,6 +106,9 @@ typedef struct ID_EX
     unsigned *funt3;
     unsigned *funct7_bit;
     unsigned *rd;
+    WB_IDEX *writeback_IDEX;
+    M_IDEX *memory_IDEX;
+    EX_IDEX *execute_IDEX;
 
 }ID_EX;
 
@@ -115,6 +120,9 @@ typedef struct EX_MEM
     Signal *ALU_result;
     Register *Read_data_2;
     unsigned *rd;
+    WB_EXMEM *writeback_EXMEM;
+    M_EXMEM *memory_EXMEM;
+
 
 }EX_MEM;
 
@@ -124,6 +132,7 @@ typedef struct MEM_WB
     Byte *read_from_data_memory;
     Signal *ALU_result;
     unsigned *rd;
+    WB_MEMWB *writeback_MEMWB;
 
 }MEM_WB;
 
@@ -152,6 +161,8 @@ typedef struct Core
     int64_t *ReadData;
 
     bool (*tick)(Core *core);
+
+
 }Core;
 
 Core *initCore(Instruction_Memory *i_mem);
