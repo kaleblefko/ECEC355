@@ -123,7 +123,6 @@ typedef struct EX_MEM
     WB_EXMEM *writeback_EXMEM;
     M_EXMEM *memory_EXMEM;
 
-
 }EX_MEM;
 
 typedef struct MEM_WB
@@ -163,6 +162,8 @@ typedef struct Core
     bool (*tick)(Core *core);
 
 
+
+
 }Core;
 
 Core *initCore(Instruction_Memory *i_mem);
@@ -199,5 +200,10 @@ Signal Add(Signal input_0,
 
 // (6). ShiftLeft1
 Signal ShiftLeft1(Signal input);
+void fetchStage();
+void decodeStage();
+void executeStage();
+void memoryStage();
+void writeBackStage();
 
 #endif
