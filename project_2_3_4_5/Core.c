@@ -68,7 +68,25 @@ void dataMemoryGrab(Core *core, unsigned rs1, unsigned immediate, int64_t *ReadD
 }
 // FIXME, implement this function
 
+void fetchStage(){
+    //TODO:
+}
 
+void decodeStage(){
+    //TODO:
+}
+
+void executeStage(){
+    //TODO:
+}
+
+void memoryStage(){
+    //TODO:
+}
+
+void writeBackStage(){
+    //TODO:
+}
 
 bool tickFunc(Core *core)
 {

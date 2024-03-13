@@ -25,25 +25,69 @@ typedef struct ControlSignals
     Signal MemWrite;
     Signal ALUSrc;
     Signal RegWrite;
+    
 }ControlSignals;
 
-typedef struct WB
+
+/* FIRST STAGE CONTROL LINE REGS*/
+typedef struct WB_IDEX
 {
 
-}WB;
+    Signal *Branch;
+    Signal *MemRead;
 
-typedef struct M
+}WB_IDEX;
+
+typedef struct M_IDEX
 {
 
-}M;
+    Signal *MemtoReg;
+    Signal *ALUOp;
+    Signal *MemWrite;
 
-typedef struct EX
+}M_IDEX;
+
+typedef struct EX_IDEX
 {
+
+    Signal *ALUSrc;
+    Signal *RegWrite;
     
-}EX;
+}EX_IDEX;
+
+
+/* SECOND STAGE CONTROL LINE REGS*/
+typedef struct WB_EXMEM
+{
+
+    Signal *Branch;
+    Signal *MemRead;
+
+}WB_EXMEM;
+
+typedef struct M_EXMEM
+{
+
+    Signal *MemtoReg;
+    Signal *ALUOp;
+    Signal *MemWrite;    
+
+}M_EXMEM;
+
+/* THIRD STAGE CONTROL LINE REG*/
+typedef struct WB_MEMWB
+{
+
+    Signal *Branch;
+    Signal *MemRead;    
+
+}WB_MEMWB;
+
+
 
 typedef struct IF_ID
 {
+
     Signal *PC;
     Signal *InstructionMemory;
 
@@ -52,16 +96,34 @@ typedef struct IF_ID
 typedef struct ID_EX
 {
 
+    Signal *PC;
+
+    Register *Read_data_1;
+    Register *Read_data_2;
+    Signal *Immediate;
+    unsigned *funt3;
+    unsigned *funct7_bit;
+    unsigned *rd;
 
 }ID_EX;
 
 typedef struct EX_MEM
-{
+{   
+
+    Signal *add_sum;
+    Signal *zero;
+    Signal *ALU_result;
+    Register *Read_data_2;
+    unsigned *rd;
 
 }EX_MEM;
 
 typedef struct MEM_WB
 {
+
+    Byte *read_from_data_memory;
+    Signal *ALU_result;
+    unsigned *rd;
 
 }MEM_WB;
 
