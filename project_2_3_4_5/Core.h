@@ -198,10 +198,10 @@ Signal Add(Signal input_0,
 
 // (6). ShiftLeft1
 Signal ShiftLeft1(Signal input);
-void fetchStage();
-void decodeStage();
-void executeStage();
-void memoryStage();
-void writeBackStage();
+void fetchStage(Core *core);
+void decodeStage(Core *core);
+void executeStage(Core *core);
+void memoryStage(Core *core);
+void writeBackStage(Core *core);
 
 #endif
