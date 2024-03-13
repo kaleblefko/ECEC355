@@ -68,26 +68,6 @@ void dataMemoryGrab(Core *core, unsigned rs1, unsigned immediate, int64_t *ReadD
 }
 // FIXME, implement this function
 
-void fetchStage(){
-    //TODO:
-}
-
-void decodeStage(){
-    //TODO:
-}
-
-void executeStage(){
-    //TODO:
-}
-
-void memoryStage(){
-    //TODO:
-}
-
-void writeBackStage(){
-    //TODO:
-}
-
 bool tickFunc(Core *core)
 {
     // Steps may include
@@ -341,4 +321,24 @@ Signal Add(Signal input_0,
 Signal ShiftLeft1(Signal input)
 {
     return input << 1;
+}
+
+void fetchStage(Core *core){
+
+}
+
+void decodeStage(Core *core){
+
+}
+
+void executeStage(Core *core){
+
+}
+
+void memoryStage(Core *core){
+
+}
+
+void writeBackStage(Core *core){
+
 }
